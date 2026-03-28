@@ -1,0 +1,49 @@
+[package]
+name = "sampleur-v2"
+version = "0.1.0"
+description = "Sampleur - MIDI Launchpad Sampler"
+authors = ["Ninjat"]
+edition = "2021"
+
+[lib]
+name = "sampleur_v2_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Audio I/O cross-platform (ALSA/WASAPI/CoreAudio)
+cpal = "0.15"
+
+# Audio file decoding (WAV, MP3, FLAC, OGG)
+symphonia = { version = "0.5", features = ["mp3", "flac", "wav", "ogg", "aac", "all-codecs"] }
+
+# High-quality sample rate conversion
+rubato = "0.15"
+
+# Lock-free SPSC ring buffer for audio callback communication
+rtrb = "0.3"
+
+# MIDI I/O cross-platform (SysEx support)
+midir = "0.10"
+
+# Async runtime (Tauri uses Tokio internally)
+tokio = { version = "1", features = ["full"] }
+
+# WAV encoding for session recording
+hound = "3.5"
+
+# Error handling
+anyhow = "1"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
