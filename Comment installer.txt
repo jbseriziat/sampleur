@@ -1,0 +1,8 @@
+Comment l'installer sur le PC du fils (Ubuntu) :
+Mettez SamplerEnfant.html et ce fichier lanceur_sampler.sh dans un dossier (ex: "Musique" sur le Bureau).
+
+Faites un clic droit sur lanceur_sampler.sh -> Propriétés -> Permissions.
+
+Cochez la case "Autoriser l'exécution du fichier comme un programme".
+
+Si le MIDI ne fonctionne toujours pas, assurez-vous que l'utilisateur est dans le groupe audio (ouvrez un terminal et tapez : sudo usermod -a -G audio $USER, puis redémarrez).

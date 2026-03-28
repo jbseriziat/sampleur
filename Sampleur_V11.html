@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sampler Jedi V11 - Final Edition (V9 Gemini)</title>
+    
+    <!-- 1. Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+    
+    <!-- 3. Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <style>
+        body { user-select: none; -webkit-user-select: none; background-color: #0f172a; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        input[type=range] { accent-color: #ec4899; }
+        .knob-value { transition: all 0.1s; }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .animate-rec { animation: pulse-red 1.5s infinite; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // --- ICÔNES SVG ---
+        const Icon = ({ p, c }) => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={c}>{p}</svg>;
+        
+        const Icons = {
+            Settings: <Icon p={<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" /><circle cx="12" cy="12" r="3" /></>} />,
+            Save: <Icon p={<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></>} />,
+            Upload: <Icon p={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></>} />,
+            Music: <Icon p={<><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></>} />,
+            Stop: <Icon p={<rect x="6" y="6" width="12" height="12" />} />,
+            Zap: <Icon p={<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />} />,
+            Loop: <Icon p={<path d="m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3" />} />,
+            Hold: <Icon p={<path d="m12 6 6 6h-6M22 22 13.4 13.4M13.4 13.4 7.5 19.5M7.5 19.5 3 10.5 22 2" />} />,
+            Waves: <Icon p={<path d="M2 12h20M2 12c0 5 9 9 9 9s9-4 9-9M2 12c0-5 9-9 9-9s9 4 9 9" />} />,
+            Wind: <Icon p={<path d="M12.8 19.6A2 2 0 1 0 14 16H2M17.5 8a2.5 2.5 0 1 1 2 5.5H2M15 2h6a2 2 0 0 1 0 4h-2" />} />,
+            Activity: <Icon p={<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />} />,
+            Clock: <Icon p={<><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></>} />,
+            Magnet: <Icon p={<><path d="m6 15-4-4 6.75-6.77a7.79 7.79 0 0 1 10.5 10.5L12.5 21l-4-4" /><path d="m9 9 5 5" /></>} />,
+            AlertCircle: <Icon p={<><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></>} />,
+            CheckCircle2: <Icon p={<><circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" /></>} />,
+            RefreshCw: <Icon p={<><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" /><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" /><path d="M8 16H3v5" /></>} />,
+            Play: <Icon p={<polygon points="5 3 19 12 5 21 5 3" />} />,
+            Thermometer: <Icon p={<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z" />} />,
+            Trash: <Icon p={<><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></>} />,
+            Mic: <Icon p={<><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></>} />,
+            Volume2: <Icon p={<><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /></>} />,
+            Sliders: <Icon p={<><line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" /><line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" /><line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" /><line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" /></>} />
+        };
+
+        // --- CONSTANTES ---
+        const COLORS = [
+            { name: 'Rouge', hex: '#ef4444', midi: 5, class: 'bg-red-500 hover:bg-red-400' },
+            { name: 'Orange', hex: '#f97316', midi: 9, class: 'bg-orange-500 hover:bg-orange-400' },
+            { name: 'Jaune', hex: '#eab308', midi: 13, class: 'bg-yellow-500 hover:bg-yellow-400' },
+            { name: 'Vert', hex: '#22c55e', midi: 21, class: 'bg-green-500 hover:bg-green-400' },
+            { name: 'Bleu', hex: '#3b82f6', midi: 45, class: 'bg-blue-500 hover:bg-blue-400' },
+            { name: 'Violet', hex: '#a855f7', midi: 49, class: 'bg-purple-500 hover:bg-purple-400' },
+            { name: 'Rose', hex: '#ec4899', midi: 53, class: 'bg-pink-500 hover:bg-pink-400' },
+            { name: 'Gris', hex: '#64748b', midi: 71, class: 'bg-slate-500 hover:bg-slate-400' },
+        ];
+
+        // --- AUDIO ENGINE ---
+        const audioCtxRef = { current: null };
+
+        const initAudioContext = () => {
+            if (!audioCtxRef.current) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtxRef.current = new AudioContext();
+            }
+            if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
+            return audioCtxRef.current;
+        };
+
+        const createReverbImpulse = (ctx, duration = 2, decay = 2) => {
+            const rate = ctx.sampleRate;
+            const length = rate * duration;
+            const impulse = ctx.createBuffer(2, length, rate);
+            const left = impulse.getChannelData(0);
+            const right = impulse.getChannelData(1);
+            for (let i = 0; i < length; i++) {
+                const n = i / length;
+                left[i] = (Math.random() * 2 - 1) * Math.pow(1 - n, decay);
+                right[i] = (Math.random() * 2 - 1) * Math.pow(1 - n, decay);
+            }
+            return impulse;
+        };
+
+        const makeDistortionCurve = (amount) => {
+            const k = typeof amount === 'number' ? amount : 50;
+            const n_samples = 44100;
+            const curve = new Float32Array(n_samples);
+            const deg = Math.PI / 180;
+            for (let i = 0; i < n_samples; ++i) {
+                const x = (i * 2) / n_samples - 1;
+                curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+            }
+            return curve;
+        };
+
+        const App = () => {
+            // --- STATE ---
+            const [kitName, setKitName] = useState("Mon Kit Jedi");
+            const [editMode, setEditMode] = useState(true);
+            const [gridSize, setGridSize] = useState(16);
+            const [selectedPadId, setSelectedPadId] = useState(null);
+            
+            // PADS
+            const [pads, setPads] = useState(Array(64).fill(null).map((_, i) => ({
+                id: i, label: `${i + 1}`, color: COLORS[i % COLORS.length], mode: 'oneshot', 
+                audioSrc: null, midiNote: null, isPlaying: false, buffer: null, 
+                originalBpm: 120,
+                volume: 1.0,
+                detune: 0
+            })));
+            
+            // FX STATE
+            const [bpm, setBpm] = useState(120);
+            const [quantize, setQuantize] = useState(false);
+            const [fx, setFx] = useState({
+                filter: 20000, filterRes: 0, delayTime: 0.3, delayFeedback: 0.4, 
+                delayMix: 0, reverbMix: 0, distortion: 0, gateRate: 0
+            });
+
+            // SYSTEM
+            const [midiOutputs, setMidiOutputs] = useState([]);
+            const [lastMidiNote, setLastMidiNote] = useState(null);
+            const [midiStatus, setMidiStatus] = useState('init');
+            const activeNodes = useRef({});
+            const fxNodes = useRef(null);
+            const [beatLed, setBeatLed] = useState(false);
+            const [isRecording, setIsRecording] = useState(false);
+            const [playbackProgress, setPlaybackProgress] = useState({});
+            
+            // REFS
+            const fileInputRef = useRef(null);
+            const loadConfigRef = useRef(null);
+            const padsRef = useRef(pads);
+            const mediaRecorderRef = useRef(null);
+            const recordedChunksRef = useRef([]);
+            
+            useEffect(() => { padsRef.current = pads; }, [pads]);
+
+            // --- VIEW LOGIC (MAPPING PADAWAN) ---
+            const getVisiblePads = () => {
+                if (gridSize === 64) {
+                    return pads; // Return all 64 pads directly
+                } else {
+                    // PADAWAN MAPPING: Return subset (first 4 of each row of 8)
+                    // Rows are indices: 0-7, 8-15, 16-23, 24-31...
+                    // We want: 0-3, 8-11, 16-19, 24-27
+                    const indices = [
+                        0, 1, 2, 3,
+                        8, 9, 10, 11,
+                        16, 17, 18, 19,
+                        24, 25, 26, 27
+                    ];
+                    return indices.map(i => pads[i]);
+                }
+            };
+            const visiblePads = getVisiblePads();
+
+            // --- AUDIO INIT & FX CHAIN ---
+            useEffect(() => {
+                const ctx = initAudioContext();
+                const masterGain = ctx.createGain();
+                const destStream = ctx.createMediaStreamDestination();
+                
+                masterGain.connect(ctx.destination);
+                masterGain.connect(destStream);
+
+                const distortion = ctx.createWaveShaper(); distortion.curve = makeDistortionCurve(0); distortion.oversample = '4x';
+                const filter = ctx.createBiquadFilter(); filter.type = "lowpass"; filter.frequency.value = fx.filter; filter.Q.value = fx.filterRes;
+                const gateGain = ctx.createGain();
+                const gateOsc = ctx.createOscillator(); gateOsc.type = 'square'; gateOsc.frequency.value = 0;
+                const gateOscGain = ctx.createGain();
+                gateOsc.connect(gateOscGain); gateOscGain.connect(gateGain.gain); gateOsc.start();
+
+                const delay = ctx.createDelay(5.0); delay.delayTime.value = fx.delayTime;
+                const delayFeedback = ctx.createGain(); delayFeedback.gain.value = fx.delayFeedback;
+                const delayDry = ctx.createGain(); const delayWet = ctx.createGain();
+                delay.connect(delayFeedback); delayFeedback.connect(delay); delay.connect(delayWet);
+
+                const convolver = ctx.createConvolver(); convolver.buffer = createReverbImpulse(ctx);
+                const reverbDry = ctx.createGain(); const reverbWet = ctx.createGain();
+                convolver.connect(reverbWet);
+
+                const flanger = ctx.createDelay(0.1);
+                const flangerLFO = ctx.createOscillator(); flangerLFO.frequency.value = 0.5;
+                const flangerLFOGain = ctx.createGain(); flangerLFOGain.gain.value = 0.005;
+                const flangerDry = ctx.createGain(); const flangerWet = ctx.createGain();
+                flangerLFO.connect(flangerLFOGain); flangerLFOGain.connect(flanger.delayTime); flangerLFO.start();
+                flanger.connect(flangerWet);
+
+                const inputNode = gateGain;
+                gateGain.connect(distortion);
+                distortion.connect(filter);
+                filter.connect(masterGain); 
+                filter.connect(delayDry); delayDry.connect(delay); delayWet.connect(masterGain);
+                filter.connect(reverbDry); reverbDry.connect(convolver); reverbWet.connect(masterGain);
+                filter.connect(flangerDry); flangerDry.connect(flanger); flangerWet.connect(masterGain);
+
+                fxNodes.current = { ctx, inputNode, filter, delay, delayFeedback, delayWet, reverbWet, distortion, gateOsc, gateOscGain, destStream };
+                return () => { try { ctx.close() } catch(e){} }
+            }, []);
+
+            // UPDATE FX
+            useEffect(() => {
+                if(!fxNodes.current) return;
+                const { filter, delay, delayFeedback, delayWet, reverbWet, distortion, gateOsc, gateOscGain } = fxNodes.current;
+                const t = fxNodes.current.ctx.currentTime;
+                
+                filter.frequency.setTargetAtTime(fx.filter, t, 0.1);
+                filter.Q.setTargetAtTime(fx.filterRes, t, 0.1);
+                delay.delayTime.setTargetAtTime(fx.delayTime, t, 0.1);
+                delayFeedback.gain.setTargetAtTime(fx.delayFeedback, t, 0.1);
+                delayWet.gain.setTargetAtTime(fx.delayMix, t, 0.1);
+                reverbWet.gain.setTargetAtTime(fx.reverbMix, t, 0.1);
+                distortion.curve = makeDistortionCurve(fx.distortion); 
+
+                if (fx.gateRate > 0) {
+                    gateOsc.frequency.setTargetAtTime(fx.gateRate, t, 0.1);
+                    gateOscGain.gain.setTargetAtTime(1, t, 0.05);
+                } else {
+                    gateOscGain.gain.setTargetAtTime(0, t, 0.05);
+                }
+            }, [fx]);
+
+            // UPDATE RATE (BPM)
+            useEffect(() => {
+                const ctx = initAudioContext();
+                Object.keys(activeNodes.current).forEach(id => {
+                    const node = activeNodes.current[id];
+                    const pad = padsRef.current[id];
+                    if (node && pad) {
+                        const rate = bpm / (pad.originalBpm || 120);
+                        if (isFinite(rate)) {
+                            try { node.source.playbackRate.setTargetAtTime(rate, ctx.currentTime, 0.1); } catch(e){}
+                        }
+                    }
+                });
+            }, [bpm]);
+
+            // --- ANIMATION LOOP ---
+            const updateProgress = () => {
+                if (!audioCtxRef.current) return;
+                const ctx = audioCtxRef.current;
+                const newProgress = {};
+
+                Object.keys(activeNodes.current).forEach(id => {
+                    const nodeData = activeNodes.current[id];
+                    if (nodeData && nodeData.source && padsRef.current[id]) {
+                        const pad = padsRef.current[id];
+                        const rate = nodeData.source.playbackRate.value;
+                        const duration = pad.buffer ? pad.buffer.duration : 1;
+                        const elapsed = ctx.currentTime - nodeData.startTime;
+                        let p = (elapsed * rate) / duration;
+                        if (pad.mode === 'loop' || pad.mode === 'hold') p = p % 1;
+                        else p = Math.min(p, 1);
+                        newProgress[id] = p;
+                    }
+                });
+                setPlaybackProgress(newProgress);
+                requestAnimationFrame(updateProgress);
+            };
+
+            useEffect(() => {
+                const handle = requestAnimationFrame(updateProgress);
+                return () => cancelAnimationFrame(handle);
+            }, []);
+
+            // --- AUDIO LOGIC ---
+            const playSound = useCallback((padId, action) => {
+                const ctx = initAudioContext();
+                const pad = padsRef.current[padId]; 
+                if (!pad || !pad.buffer) return;
+
+                if (action === 'start') {
+                    if (activeNodes.current[padId]) { 
+                        try { activeNodes.current[padId].source.stop(); } catch(e){} 
+                    }
+
+                    const source = ctx.createBufferSource();
+                    source.buffer = pad.buffer;
+                    
+                    const rate = bpm / (pad.originalBpm || 120);
+                    source.playbackRate.value = rate;
+                    source.detune.value = pad.detune;
+
+                    if (pad.mode === 'loop' || pad.mode === 'hold') source.loop = true;
+                    
+                    const volNode = ctx.createGain();
+                    volNode.gain.value = pad.volume;
+
+                    source.connect(volNode);
+                    if (fxNodes.current) volNode.connect(fxNodes.current.inputNode);
+
+                    let startTime = ctx.currentTime;
+                    if (quantize) {
+                        const beatLen = 60 / bpm;
+                        const currentBeat = Math.ceil(startTime / beatLen);
+                        const nextBeatTime = currentBeat * beatLen;
+                        if (nextBeatTime - startTime > 0.02) startTime = nextBeatTime; 
+                    }
+
+                    source.start(startTime);
+                    activeNodes.current[padId] = { source: source, gain: volNode, startTime: startTime };
+                    
+                    const delayMs = Math.max(0, (startTime - ctx.currentTime) * 1000);
+                    setTimeout(() => {
+                        setPads(p => p.map(px => px.id === padId ? {...px, isPlaying: true} : px));
+                        triggerMidiLed(pad.midiNote, 21);
+                    }, delayMs);
+
+                    source.onended = () => {
+                        setPads(p => p.map(px => px.id === padId ? {...px, isPlaying: false} : px));
+                        delete activeNodes.current[padId];
+                    };
+
+                } else if (action === 'stop') {
+                    if (pad.mode === 'hold' && activeNodes.current[padId]) {
+                        activeNodes.current[padId].source.stop();
+                        delete activeNodes.current[padId];
+                    }
+                } else if (action === 'toggle_loop') {
+                     if (pad.isPlaying && activeNodes.current[padId]) {
+                        activeNodes.current[padId].source.stop();
+                        delete activeNodes.current[padId];
+                     } else {
+                         playSound(padId, 'start');
+                     }
+                }
+            }, [bpm, quantize]);
+
+            const triggerPadRef = useRef(playSound);
+            useEffect(() => { triggerPadRef.current = playSound; }, [playSound]);
+
+            const triggerPad = (padId, action) => {
+                const pad = pads[padId];
+                if (!pad.buffer) return;
+                if (pad.mode === 'loop' && action === 'start') playSound(padId, 'toggle_loop');
+                else playSound(padId, action);
+            };
+
+            const stopAll = () => {
+                Object.values(activeNodes.current).forEach(obj => { try { obj.source.stop(); } catch(e){} });
+                activeNodes.current = {};
+                setPads(prev => prev.map(p => ({...p, isPlaying: false})));
+                forceRefreshLEDs();
+            };
+
+            const toggleRecording = () => {
+                if (isRecording) {
+                    if(mediaRecorderRef.current) mediaRecorderRef.current.stop();
+                    setIsRecording(false);
+                } else {
+                    if (!fxNodes.current || !fxNodes.current.destStream) return;
+                    const options = { mimeType: 'audio/webm' };
+                    const recorder = new MediaRecorder(fxNodes.current.destStream.stream, options);
+                    recordedChunksRef.current = [];
+                    recorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunksRef.current.push(e.data); };
+                    recorder.onstop = () => {
+                        const blob = new Blob(recordedChunksRef.current, { type: 'audio/webm' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href = url;
+                        const safeName = kitName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'session';
+                        a.download = `${safeName}_session.webm`; a.click(); URL.revokeObjectURL(url);
+                    };
+                    recorder.start();
+                    mediaRecorderRef.current = recorder;
+                    setIsRecording(true);
+                }
+            };
+
+            const handleFileSelect = async (e) => {
+                const file = e.target.files[0];
+                if (file && selectedPadId !== null) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const ctx = initAudioContext();
+                    const reader = new FileReader();
+                    reader.onload = async (ev) => {
+                        try {
+                            const decodedBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+                            setPads(prev => prev.map(p => p.id === selectedPadId ? { 
+                                ...p, audioSrc: ev.target.result, buffer: decodedBuffer, 
+                                originalBpm: 120, volume: 1.0, detune: 0 
+                            } : p));
+                        } catch(err) { alert("Format audio non supporté."); }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            useEffect(() => {
+                const ctx = initAudioContext();
+                pads.forEach(async (pad) => {
+                    if (pad.audioSrc && !pad.buffer) {
+                        try {
+                            const resp = await fetch(pad.audioSrc);
+                            const ab = await resp.arrayBuffer();
+                            const b = await ctx.decodeAudioData(ab);
+                            setPads(prev => prev.map(px => px.id === pad.id ? {...px, buffer: b} : px));
+                        } catch(e) {}
+                    }
+                });
+            }, [pads]);
+
+            const triggerMidiLed = (note, color) => {
+                midiOutputs.forEach(out => { try { out.send([144, note, color]); } catch(e){} });
+            };
+
+            const forceRefreshLEDs = () => {
+                if(midiOutputs.length > 0) {
+                    pads.forEach(pad => {
+                        if (pad.midiNote && pad.audioSrc) {
+                            if (!pad.isPlaying) triggerMidiLed(pad.midiNote, pad.color.midi);
+                        } else if (pad.midiNote) {
+                            triggerMidiLed(pad.midiNote, 0); 
+                        }
+                    });
+                }
+            };
+
+            useEffect(() => {
+                const intervalMs = (60 / bpm) * 1000;
+                const interval = setInterval(() => setBeatLed(b => !b), intervalMs);
+                return () => clearInterval(interval);
+            }, [bpm]);
+
+            useEffect(() => {
+                if(midiOutputs.length === 0) return;
+                pads.forEach(pad => {
+                    if (pad.midiNote) {
+                        const color = pad.isPlaying ? (beatLed ? 21 : pad.color.midi) : (pad.audioSrc ? pad.color.midi : 0);
+                        triggerMidiLed(pad.midiNote, color);
+                    }
+                });
+            }, [beatLed, pads, midiOutputs]);
+
+            const initializeLaunchpadModes = (outputsToInit) => {
+                const sysExHeader = [240, 0, 32, 41, 2];
+                const end = 247;
+                const programModeCmd = [14, 1]; 
+                outputsToInit.forEach(output => {
+                    try {
+                        output.send([...sysExHeader, 13, ...programModeCmd, end]); 
+                        output.send([...sysExHeader, 12, ...programModeCmd, end]);
+                    } catch (e) {}
+                });
+            };
+
+            const manualResetMIDI = () => {
+                if(navigator.requestMIDIAccess) {
+                    navigator.requestMIDIAccess({ sysex: true }).then(midi => {
+                        const outputs = Array.from(midi.outputs.values());
+                        const candidates = outputs.filter(o => {
+                            const name = o.name.toLowerCase();
+                            return name.includes("launchpad") || (!name.includes("through") && !name.includes("microsoft"));
+                        });
+                        setMidiOutputs(candidates);
+                        initializeLaunchpadModes(candidates);
+                        forceRefreshLEDs();
+                        alert(`Signal envoyé à ${candidates.length} ports.`);
+                    });
+                }
+            };
+
+            useEffect(() => {
+                if (!navigator.requestMIDIAccess) { setMidiStatus('unsupported'); return; }
+                const handleMidiMessage = (msg) => {
+                    const [cmd, note, vel] = msg.data;
+                    const currentPads = padsRef.current; 
+                    if (cmd === 144 && vel > 0) {
+                        const pad = currentPads.find(p => p.midiNote === note);
+                        if (pad) {
+                            if (pad.mode === 'loop') triggerPadRef.current(pad.id, 'toggle_loop');
+                            else triggerPadRef.current(pad.id, 'start');
+                        }
+                        setLastMidiNote(note);
+                    } else if ((cmd === 128 || (cmd === 144 && vel === 0))) {
+                        const pad = currentPads.find(p => p.midiNote === note);
+                        if (pad && pad.mode !== 'loop') triggerPadRef.current(pad.id, 'stop');
+                    }
+                };
+                navigator.requestMIDIAccess({ sysex: true }).then(midi => {
+                    setMidiStatus('connected');
+                    const inputs = Array.from(midi.inputs.values());
+                    inputs.forEach(i => i.onmidimessage = handleMidiMessage);
+                    midi.onstatechange = (e) => { if (e.port.type === 'input' && e.port.state === 'connected') e.port.onmidimessage = handleMidiMessage; };
+                    const outputs = Array.from(midi.outputs.values());
+                    const candidates = outputs.filter(o => { const name = o.name.toLowerCase(); return name.includes("launchpad") || (!name.includes("through") && !name.includes("microsoft")); });
+                    setMidiOutputs(candidates);
+                    initializeLaunchpadModes(candidates);
+                }).catch(err => {
+                    if(err.name === 'SecurityError') setMidiStatus('denied');
+                    else setMidiStatus('error');
+                });
+            }, []);
+
+            const saveJson = () => {
+                const data = { name: kitName, gridSize, bpm, pads: pads.map(p => ({...p, buffer: null})) };
+                const blob = new Blob([JSON.stringify(data)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; 
+                const safeName = kitName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'kit';
+                a.download = `${safeName}.json`; a.click();
+            };
+
+            const loadJson = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const d = JSON.parse(ev.target.result);
+                    setKitName(d.name || "Kit Chargé");
+                    setGridSize(d.gridSize || 16);
+                    if (d.bpm) setBpm(d.bpm); 
+                    setPads(d.pads.map(p => ({
+                        ...p, buffer: null,
+                        volume: p.volume !== undefined ? p.volume : 1.0,
+                        detune: p.detune !== undefined ? p.detune : 0
+                    })));
+                };
+                reader.readAsText(file);
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-900 text-white font-sans flex flex-col h-screen overflow-hidden">
+                    <header className="h-16 bg-slate-800 border-b border-slate-700 flex items-center px-4 justify-between shrink-0">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg">{Icons.Music}</div>
+                            <div>
+                                <h1 className="hidden md:block font-bold text-xs text-slate-400 uppercase tracking-widest mb-1">
+                                    {gridSize === 16 ? "Sampler Padawan" : "Sampler Jedi DJ"}
+                                </h1>
+                                <input value={kitName} onChange={e => setKitName(e.target.value)} className="bg-transparent text-xl font-bold text-white border-b-2 border-transparent hover:border-slate-500 focus:border-blue-500 outline-none w-64 transition-all" placeholder="Nom du kit..." />
+                            </div>
+                        </div>
+                        <div className="flex bg-slate-900 rounded-lg p-1 border border-slate-700">
+                            <button onClick={() => setGridSize(16)} className={`px-4 py-1 rounded text-xs font-bold ${gridSize === 16 ? 'bg-pink-600 text-white' : 'text-slate-500 hover:text-white'}`}>PADAWAN</button>
+                            <button onClick={() => setGridSize(64)} className={`px-4 py-1 rounded text-xs font-bold ${gridSize === 64 ? 'bg-purple-600 text-white' : 'text-slate-500 hover:text-white'}`}>JEDI</button>
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={toggleRecording} className={`px-4 py-2 rounded-lg flex items-center gap-2 font-bold transition-all border ${isRecording ? 'bg-red-900/80 border-red-500 text-white animate-rec' : 'bg-slate-800 border-slate-600 text-slate-400 hover:text-white'}`} title="Enregistrer la session (audio)">
+                                <div className={`w-3 h-3 rounded-full ${isRecording ? 'bg-red-500' : 'bg-slate-500'}`}></div>{isRecording ? 'REC ON' : 'REC'}
+                            </button>
+                            <button onClick={stopAll} className="bg-red-500/20 text-red-400 border border-red-500/50 px-4 py-2 rounded-lg flex items-center gap-2 font-bold hover:bg-red-500 hover:text-white transition-all">{Icons.Stop} STOP</button>
+                            <button onClick={() => {setEditMode(!editMode); setSelectedPadId(null)}} className={`px-4 py-2 rounded-lg font-bold flex items-center gap-2 ${editMode ? 'bg-yellow-500 text-black' : 'bg-green-600 text-white'}`}>{editMode ? Icons.Settings : Icons.Play} {editMode ? 'CONFIG' : 'JOUER'}</button>
+                        </div>
+                    </header>
+
+                    <div className="flex-1 flex overflow-hidden">
+                        {gridSize === 64 && (
+                            <div className="w-64 bg-slate-800 border-r border-slate-700 p-4 flex flex-col gap-6 overflow-y-auto shrink-0">
+                                <div className="text-xs font-bold text-slate-500 uppercase tracking-widest">Master FX</div>
+                                <div className="bg-slate-700/50 p-3 rounded-xl border border-slate-600">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <label className="flex items-center gap-2 text-sm font-bold text-pink-400">{Icons.Clock} {bpm} BPM</label>
+                                        <div className={`w-3 h-3 rounded-full ${beatLed ? 'bg-green-400 shadow-[0_0_10px_#4ade80]' : 'bg-slate-900'}`}></div>
+                                    </div>
+                                    <input type="range" min="60" max="180" value={bpm} onChange={e => setBpm(Number(e.target.value))} className="w-full mb-4 h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer" />
+                                    <button onClick={() => setQuantize(!quantize)} className={`w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${quantize ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'bg-slate-900 text-slate-500'}`}>{Icons.Magnet} {quantize ? 'AIMANT ON' : 'AIMANT OFF'}</button>
+                                </div>
+                                <div><label className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-2">{Icons.Zap} DISTORTION (Drive)</label><input type="range" min="0" max="100" step="1" value={fx.distortion} onChange={e => setFx({...fx, distortion: Number(e.target.value)})} className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer" /></div>
+                                <div><label className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-2">{Icons.Waves} FILTRE (Freq/Res)</label><div className="flex gap-2"><input type="range" min="100" max="20000" step="100" value={fx.filter} onChange={e => setFx({...fx, filter: Number(e.target.value)})} className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer" title="Fréquence" /><input type="range" min="0" max="20" step="1" value={fx.filterRes} onChange={e => setFx({...fx, filterRes: Number(e.target.value)})} className="w-1/2 h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer" title="Résonance" /></div></div>
+                                <div><label className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-2">{Icons.Activity} ECHO (Mix/Time/Feed)</label><div className="flex gap-2"><input type="range" min="0" max="1" step="0.01" value={fx.delayMix} onChange={e => setFx({...fx, delayMix: Number(e.target.value)})} className="w-full" title="Mix" /><input type="range" min="0.1" max="1.0" step="0.05" value={fx.delayTime} onChange={e => setFx({...fx, delayTime: Number(e.target.value)})} className="w-1/2" title="Temps" /><input type="range" min="0" max="0.9" step="0.05" value={fx.delayFeedback} onChange={e => setFx({...fx, delayFeedback: Number(e.target.value)})} className="w-1/2" title="Feedback" /></div></div>
+                                <div><label className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-2">{Icons.Wind} REVERB</label><input type="range" min="0" max="2" step="0.01" value={fx.reverbMix} onChange={e => setFx({...fx, reverbMix: Number(e.target.value)})} className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer" /></div>
+                                <div><label className="text-xs font-bold text-slate-400 mb-1 flex items-center gap-2">{Icons.Zap} GATE</label><input type="range" min="0" max="12" step="0.5" value={fx.gateRate} onChange={e => setFx({...fx, gateRate: Number(e.target.value)})} className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer" /></div>
+                            </div>
+                        )}
+
+                        <div className="flex-1 bg-slate-900 p-4 flex items-center justify-center overflow-auto">
+                            <div className={`grid gap-2 transition-all ${gridSize === 64 ? 'grid-cols-8 w-full max-w-[80vh] aspect-square' : 'grid-cols-4 w-full max-w-[60vh] aspect-square'}`}>
+                                {visiblePads.map(pad => (
+                                    <button
+                                        key={pad.id}
+                                        onMouseDown={() => { setSelectedPadId(pad.id); triggerPad(pad.id, 'start'); }}
+                                        onMouseUp={() => triggerPad(pad.id, 'stop')}
+                                        onMouseLeave={() => triggerPad(pad.id, 'stop')}
+                                        onTouchStart={(e) => { e.preventDefault(); setSelectedPadId(pad.id); triggerPad(pad.id, 'start'); }}
+                                        onTouchEnd={(e) => { e.preventDefault(); triggerPad(pad.id, 'stop'); }}
+                                        className={`
+                                            relative rounded-lg flex flex-col items-center justify-center overflow-hidden transition-all
+                                            ${pad.color.class}
+                                            ${pad.isPlaying ? 'brightness-150 scale-95 shadow-[0_0_15px_rgba(255,255,255,0.5)]' : 'shadow-lg hover:brightness-110'}
+                                            ${editMode && selectedPadId === pad.id ? 'ring-4 ring-white z-10' : ''}
+                                            ${!pad.buffer && editMode ? 'opacity-30 border-2 border-dashed border-white' : ''}
+                                        `}
+                                    >
+                                        {/* PROGRESS BAR */}
+                                        {playbackProgress[pad.id] !== undefined && pad.isPlaying && (
+                                            <div className="absolute bottom-0 left-0 h-1.5 bg-white/50 z-20 pointer-events-none transition-all duration-75 ease-linear" style={{ width: `${playbackProgress[pad.id] * 100}%` }}></div>
+                                        )}
+
+                                        {pad.mode === 'loop' && <div className="absolute top-1 right-1 opacity-50 scale-75">{Icons.Loop}</div>}
+                                        {pad.mode === 'hold' && <div className="absolute top-1 right-1 opacity-50 scale-75">{Icons.Hold}</div>}
+                                        
+                                        <span className={`font-black text-black/20 pointer-events-none ${gridSize === 64 ? 'text-xl' : 'text-4xl'}`}>{pad.label}</span>
+                                        
+                                        {editMode && pad.midiNote && <span className="absolute bottom-1 right-1 text-[8px] text-black font-mono font-bold">{pad.midiNote}</span>}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {editMode && (
+                            <div className="w-80 bg-slate-800 border-l border-slate-700 p-4 overflow-y-auto shrink-0 z-20 shadow-xl">
+                                <div className="mb-6 flex gap-2">
+                                    <button onClick={saveJson} className="flex-1 bg-blue-600 hover:bg-blue-500 py-2 rounded text-xs font-bold flex items-center justify-center gap-2">{Icons.Save} SAUVER</button>
+                                    <button onClick={() => loadConfigRef.current.click()} className="flex-1 bg-slate-600 hover:bg-slate-500 py-2 rounded text-xs font-bold flex items-center justify-center gap-2">{Icons.Upload} CHARGER</button>
+                                    <input type="file" ref={loadConfigRef} onChange={loadJson} className="hidden" accept=".json"/>
+                                </div>
+
+                                {gridSize === 16 && (
+                                    <div className="mb-6 bg-slate-700/50 p-3 rounded-xl border border-slate-600">
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase mb-2 tracking-widest">Global</div>
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="flex items-center gap-2 text-xs font-bold text-pink-400">{Icons.Clock} {bpm} BPM</label>
+                                            <div className={`w-2 h-2 rounded-full ${beatLed ? 'bg-green-400 shadow-[0_0_10px_#4ade80]' : 'bg-slate-900'}`}></div>
+                                        </div>
+                                        <input type="range" min="60" max="180" value={bpm} onChange={e => setBpm(Number(e.target.value))} className="w-full mb-3 h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer" />
+                                        <button onClick={() => setQuantize(!quantize)} className={`w-full py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${quantize ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-900 text-slate-500'}`}>{Icons.Magnet} {quantize ? 'AIMANT ACTIVÉ' : 'AIMANT DÉSACTIVÉ'}</button>
+                                    </div>
+                                )}
+
+                                {selectedPadId !== null ? (
+                                    <div className="space-y-6 animate-pulse-once">
+                                        <div className="flex items-center gap-2 pb-2 border-b border-slate-700">
+                                            <div className={`w-4 h-4 rounded-full ${pads[selectedPadId].color.class}`}></div>
+                                            <h2 className="font-bold">Pad {selectedPadId + 1}</h2>
+                                        </div>
+                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Mode</label><div className="flex gap-1 bg-slate-900 p-1 rounded-lg">{[['oneshot', Icons.Zap], ['loop', Icons.Loop], ['hold', Icons.Hold]].map(([m, i]) => (<button key={m} onClick={() => setPads(pd => pd.map(p => p.id === selectedPadId ? {...p, mode: m} : p))} className={`flex-1 py-2 rounded flex justify-center ${pads[selectedPadId].mode === m ? 'bg-pink-500 text-white' : 'text-slate-500 hover:bg-slate-800'}`}>{i}</button>))}</div></div>
+                                        
+                                        {/* ORIGINAL BPM SETTING */}
+                                        <div>
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block">BPM d'origine (Sync)</label>
+                                            <div className="flex gap-2">
+                                                <input type="number" min="60" max="200" value={pads[selectedPadId].originalBpm || 120} onChange={e => setPads(pd => pd.map(p => p.id === selectedPadId ? {...p, originalBpm: Number(e.target.value)} : p))} className="w-20 bg-slate-900 text-white p-2 rounded text-xs font-bold border border-slate-600" />
+                                                <div className="text-[10px] text-slate-500 flex items-center leading-3">Si ce son est une boucle,<br/>indiquez son tempo original.</div>
+                                            </div>
+                                        </div>
+
+                                        {/* VOLUME & PITCH CONTROL */}
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <div className="flex justify-between mb-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">{Icons.Volume2} Volume</label>
+                                                    <span className="text-xs text-slate-300 font-mono">{(pads[selectedPadId].volume * 100).toFixed(0)}%</span>
+                                                </div>
+                                                <input 
+                                                    type="range" min="0" max="2" step="0.05" 
+                                                    value={pads[selectedPadId].volume} 
+                                                    onChange={e => setPads(pd => pd.map(p => p.id === selectedPadId ? {...p, volume: Number(e.target.value)} : p))} 
+                                                    className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer"
+                                                />
+                                            </div>
+                                            <div>
+                                                <div className="flex justify-between mb-2">
+                                                    <label className="text-[10px] font-bold text-slate-400 uppercase flex items-center gap-1">{Icons.Sliders} Pitch</label>
+                                                    <span className="text-xs text-slate-300 font-mono">{pads[selectedPadId].detune / 100} st</span>
+                                                </div>
+                                                <input 
+                                                    type="range" min="-1200" max="1200" step="100" 
+                                                    value={pads[selectedPadId].detune} 
+                                                    onChange={e => setPads(pd => pd.map(p => p.id === selectedPadId ? {...p, detune: Number(e.target.value)} : p))} 
+                                                    className="w-full h-2 bg-slate-900 rounded-lg appearance-none cursor-pointer"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Audio</label><button onClick={() => fileInputRef.current.click()} className="w-full py-3 border border-dashed border-slate-500 rounded-lg text-slate-400 text-xs hover:bg-slate-700 hover:text-white flex items-center justify-center gap-2">{Icons.Upload} {pads[selectedPadId].buffer ? 'Remplacer Son' : 'Choisir Son'}</button><input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="audio/*"/></div>
+                                        <div><label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block">Couleur</label><div className="grid grid-cols-4 gap-2">{COLORS.map(c => (<button key={c.name} onClick={() => setPads(pd => pd.map(p => p.id === selectedPadId ? {...p, color: c} : p))} className={`h-8 rounded-md ${c.class} ${pads[selectedPadId].color.name === c.name ? 'ring-2 ring-white' : ''}`} />))}</div></div>
+                                        <div className="bg-slate-700/50 p-3 rounded-lg">
+                                            <label className="text-[10px] font-bold text-slate-400 uppercase mb-2 block">MIDI Learn</label>
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-xs text-slate-400">Note reçue:</span>
+                                                <span className="text-xl font-mono text-yellow-400">{lastMidiNote || '--'}</span>
+                                            </div>
+                                            <button disabled={!lastMidiNote} onClick={() => { setPads(pd => pd.map(p => p.id === selectedPadId ? {...p, midiNote: lastMidiNote} : p)); setLastMidiNote(null); }} className="w-full py-2 bg-purple-600 disabled:bg-slate-600 disabled:opacity-50 rounded font-bold text-xs">Assigner Note</button>
+                                            <div className="mt-3 pt-2 border-t border-slate-600"><button onClick={manualResetMIDI} className="w-full py-1 bg-yellow-600 hover:bg-yellow-500 text-white rounded text-[10px] flex items-center justify-center gap-1" title="Forcer les lumières">{Icons.RefreshCw} Init LED (SOS)</button></div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center text-slate-500 mt-10 p-4 border border-slate-700 rounded-lg">
+                                        <div className="text-xs text-slate-400 mb-2">MIDI Status: {midiStatus}</div>
+                                        {midiStatus === 'denied' && <div className="text-red-400 text-xs font-bold">Accès MIDI bloqué par le navigateur.<br/>Vérifiez les permissions.</div>}
+                                        <p className="text-sm mt-4">Sélectionnez un pad pour éditer.</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
