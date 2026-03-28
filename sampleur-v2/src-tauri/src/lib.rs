@@ -8,11 +8,16 @@ use std::sync::{mpsc, Arc, Mutex};
 use tauri::Emitter;
 use state::{AppState, AudioShared, MidiShared, PadProgress};
 use audio::engine::AudioEngine;
-use midi::engine::MidiEngine;
 use commands::{
     audio_commands::{trigger_pad, stop_all, load_sample, remove_sample, set_pad_config, get_progress},
     fx_commands::{set_fx_param, set_bpm, set_quantize},
-    midi_commands::{get_midi_inputs, get_midi_outputs, set_midi_output, init_launchpad, refresh_leds, assign_midi_note, start_midi_learn, cancel_midi_learn, reset_leds},
+    midi_commands::{
+        get_midi_inputs, get_midi_outputs,
+        set_midi_output, set_midi_input,
+        init_launchpad, refresh_leds, set_pad_led,
+        assign_midi_note, start_midi_learn, cancel_midi_learn,
+        reset_leds,
+    },
     preset_commands::{save_preset, load_preset},
 };
 
@@ -56,21 +61,27 @@ pub fn run() {
             let midi_shared_setup = Arc::clone(&midi_shared);
             let cmd_tx_midi = cmd_tx.clone();
 
-            // Start MIDI engine on a dedicated thread
+            // Auto-connect MIDI input (Launchpad auto-detect, no blocking loop needed:
+            // the connection is stored in MidiShared.input_conn and kept alive there).
             std::thread::spawn(move || {
-                match MidiEngine::new(cmd_tx_midi, midi_shared_setup, app_handle.clone()) {
-                    Ok(_engine) => {
+                match midi::engine::connect_input(
+                    cmd_tx_midi,
+                    midi_shared_setup,
+                    app_handle.clone(),
+                    None, // auto-detect Launchpad, fall back to first port
+                ) {
+                    Ok(port_name) => {
+                        log::info!("MIDI auto-connected to: {}", port_name);
                         let _ = app_handle.emit("midi-status", serde_json::json!({
-                            "status": "connected"
+                            "status": "connected",
+                            "portName": port_name,
                         }));
-                        // Keep the engine alive by parking this thread
-                        loop { std::thread::sleep(std::time::Duration::from_secs(3600)); }
                     }
                     Err(e) => {
-                        log::warn!("MIDI engine failed: {}", e);
+                        log::warn!("MIDI auto-connect failed: {}", e);
                         let _ = app_handle.emit("midi-status", serde_json::json!({
                             "status": "error",
-                            "message": e.to_string()
+                            "message": e.to_string(),
                         }));
                     }
                 }
@@ -127,8 +138,10 @@ pub fn run() {
             get_midi_inputs,
             get_midi_outputs,
             set_midi_output,
+            set_midi_input,
             init_launchpad,
             refresh_leds,
+            set_pad_led,
             assign_midi_note,
             start_midi_learn,
             cancel_midi_learn,

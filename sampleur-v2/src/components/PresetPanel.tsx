@@ -7,7 +7,11 @@ import { useMidiStore } from '../store/useMidiStore';
 export function PresetPanel() {
   const { pads, kitName, gridSize, loadFromPreset } = usePadStore();
   const { fx, bpm, quantize, loadFx } = useFxStore();
-  const { midiOutputs, selectedOutput, setSelectedOutput } = useMidiStore();
+  const {
+    midiInputs, midiOutputs,
+    selectedInput, selectedOutput,
+    setSelectedInput, setSelectedOutput,
+  } = useMidiStore();
   const [saveMode, setSaveMode] = useState<'lightweight' | 'portable'>('lightweight');
 
   const handleSave = async () => {
@@ -96,8 +100,19 @@ export function PresetPanel() {
     }
   };
 
+  const handleMidiInput = async (portName: string) => {
+    setSelectedInput(portName);
+    if (!portName) return;
+    try {
+      await invoke('set_midi_input', { portName });
+    } catch (err) {
+      console.error('MIDI input error:', err);
+    }
+  };
+
   const handleMidiOutput = async (portName: string) => {
     setSelectedOutput(portName);
+    if (!portName) return;
     try {
       await invoke('set_midi_output', { portName });
       await invoke('init_launchpad');
@@ -136,25 +151,40 @@ export function PresetPanel() {
         </button>
       </div>
 
-      {/* MIDI output */}
+      {/* MIDI input */}
       <div className="flex items-center gap-1 ml-4">
+        <span className="text-gray-400 text-xs">Entrée MIDI:</span>
+        <select
+          value={selectedInput ?? ''}
+          onChange={(e) => handleMidiInput(e.target.value)}
+          className="bg-slate-700 text-gray-300 text-xs rounded px-1 py-1 border border-slate-600 max-w-40"
+        >
+          <option value="">— Aucune —</option>
+          {midiInputs.map((i) => (
+            <option key={i} value={i}>{i.slice(0, 25)}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* MIDI output */}
+      <div className="flex items-center gap-1">
         <span className="text-gray-400 text-xs">Sortie MIDI:</span>
         <select
           value={selectedOutput ?? ''}
           onChange={(e) => handleMidiOutput(e.target.value)}
           className="bg-slate-700 text-gray-300 text-xs rounded px-1 py-1 border border-slate-600 max-w-40"
         >
-          <option value="">\u2014 Aucune \u2014</option>
+          <option value="">— Aucune —</option>
           {midiOutputs.map((o) => (
             <option key={o} value={o}>{o.slice(0, 25)}</option>
           ))}
         </select>
         <button
           onClick={handleResetLeds}
-          title="R\u00e9initialiser les LEDs"
+          title="Réinitialiser les LEDs"
           className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-gray-300 rounded"
         >
-          LEDs SOS
+          LEDs off
         </button>
       </div>
     </div>

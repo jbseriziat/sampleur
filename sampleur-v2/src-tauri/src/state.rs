@@ -67,6 +67,9 @@ pub struct MidiShared {
     pub pad_has_sample: [bool; 64],
     pub learn_state: MidiLearnState,
     pub output_conn: Option<midir::MidiOutputConnection>,
+    /// Active MIDI input connection — stored here so it can be hot-swapped via set_midi_input.
+    /// Dropping this stops the MIDI callback thread (safe because callback uses try_lock).
+    pub input_conn: Option<midir::MidiInputConnection<()>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -84,6 +87,7 @@ impl Default for MidiShared {
             pad_has_sample: [false; 64],
             learn_state: MidiLearnState::Idle,
             output_conn: None,
+            input_conn: None,
         }
     }
 }

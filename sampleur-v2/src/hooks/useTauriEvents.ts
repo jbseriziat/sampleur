@@ -46,6 +46,16 @@ export function useTauriEvents() {
       );
     }).then((fn) => unlisteners.push(fn));
 
+    // Launchpad default mapping applied — sync midiNote for every pad in the store
+    listen<{ mapping: Array<{ padId: number; note: number }> }>(
+      'launchpad-mapping-applied',
+      (event) => {
+        for (const { padId, note } of event.payload.mapping) {
+          updatePad(padId, { midiNote: note });
+        }
+      },
+    ).then((fn) => unlisteners.push(fn));
+
     return () => { unlisteners.forEach((fn) => fn()); };
   }, []);
 }
