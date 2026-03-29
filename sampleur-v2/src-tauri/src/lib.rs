@@ -6,10 +6,10 @@ mod commands;
 
 use std::sync::{mpsc, Arc, Mutex};
 use tauri::Emitter;
-use state::{AppState, AudioShared, MidiShared, PadProgress};
+use state::{AppState, AudioShared, MidiShared, PadProgress, RecordingState};
 use audio::engine::AudioEngine;
 use commands::{
-    audio_commands::{trigger_pad, stop_all, reset_kit, load_sample, remove_sample, set_pad_config, get_progress},
+    audio_commands::{trigger_pad, stop_all, reset_kit, load_sample, remove_sample, set_pad_config, get_progress, start_recording, stop_recording},
     fx_commands::{set_fx_param, set_bpm, set_quantize},
     midi_commands::{
         get_midi_inputs, get_midi_outputs,
@@ -42,13 +42,15 @@ pub fn run() {
     // Start audio engine
     let audio_engine = AudioEngine::new(cmd_rx, Arc::clone(&progress_state))
         .expect("Failed to start audio engine");
-    let _ = audio_engine; // Keep alive
+    let sample_rate = audio_engine.sample_rate;
+    let _ = audio_engine; // Keep alive (stream must not be dropped)
 
     let app_state = AppState {
-        audio: Mutex::new(AudioShared { cmd_tx: cmd_tx.clone() }),
+        audio: Mutex::new(AudioShared { cmd_tx: cmd_tx.clone(), sample_rate }),
         midi: Arc::clone(&midi_shared),
         progress: Arc::clone(&progress_state),
         bpm: Arc::clone(&bpm_state),
+        recording: Mutex::new(RecordingState::default()),
     };
 
     tauri::Builder::default()
@@ -149,6 +151,8 @@ pub fn run() {
             reset_leds,
             save_preset,
             load_preset,
+            start_recording,
+            stop_recording,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

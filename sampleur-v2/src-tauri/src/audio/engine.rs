@@ -69,6 +69,9 @@ fn build_stream_f32(
     // Pending quantised triggers: (pad_id, action, remaining_delay_in_samples)
     let mut pending_triggers: Vec<(usize, crate::state::PadAction, usize)> = Vec::new();
 
+    // Recording sender — set via AudioCommand::StartRecording, cleared on StopRecording.
+    let mut rec_tx: Option<mpsc::SyncSender<Vec<f32>>> = None;
+
     let stream = device.build_output_stream(
         &config,
         move |output: &mut [f32], _info: &cpal::OutputCallbackInfo| {
@@ -87,6 +90,7 @@ fn build_stream_f32(
                         &mut global_bpm, &mut quantize,
                         &mut pending_triggers,
                         samples_to_next_beat,
+                        &mut rec_tx,
                     ),
                     Err(mpsc::TryRecvError::Empty) => break,
                     Err(mpsc::TryRecvError::Disconnected) => break,
@@ -125,7 +129,16 @@ fn build_stream_f32(
             // ── 7. Effects chain ──────────────────────────────────────────────────
             fx.process(output);
 
-            // ── 8. Progress report at ~30fps ──────────────────────────────────────
+            // ── 8. Recording tap (after FX, before device write) ─────────────────
+            if let Some(tx) = &rec_tx {
+                // try_send: if channel is full, drop the block (avoid blocking audio thread).
+                // If the receiver is gone, clear the sender so we stop trying.
+                if tx.try_send(output.to_vec()).is_err() {
+                    rec_tx = None;
+                }
+            }
+
+            // ── 9. Progress report at ~30fps ──────────────────────────────────────
             progress_counter += n_out_frames as u32;
             if progress_counter >= progress_update_interval {
                 progress_counter = 0;
@@ -137,7 +150,7 @@ fn build_stream_f32(
                 }
             }
 
-            // ── 9. Advance beat counter ───────────────────────────────────────────
+            // ── 10. Advance beat counter ───────────────────────────────────────────
             samples_since_beat = samples_since_beat.wrapping_add(n_out_frames as u64);
         },
         |err| log::error!("CPAL stream error: {}", err),
@@ -163,6 +176,7 @@ fn build_stream_generic<T: cpal::Sample + cpal::SizedSample + cpal::FromSample<f
     let progress_update_interval = (sr / 30.0) as u32;
     let mut pending_triggers: Vec<(usize, crate::state::PadAction, usize)> = Vec::new();
     let mut samples_since_beat: u64 = 0;
+    let mut rec_tx: Option<mpsc::SyncSender<Vec<f32>>> = None;
 
     let stream = device.build_output_stream(
         &config,
@@ -181,6 +195,7 @@ fn build_stream_generic<T: cpal::Sample + cpal::SizedSample + cpal::FromSample<f
                         &mut global_bpm, &mut quantize,
                         &mut pending_triggers,
                         samples_to_next_beat,
+                        &mut rec_tx,
                     ),
                     Err(_) => break,
                 }
@@ -205,6 +220,13 @@ fn build_stream_generic<T: cpal::Sample + cpal::SizedSample + cpal::FromSample<f
             }
 
             fx.process(&mut float_buf);
+
+            // Recording tap (after FX)
+            if let Some(tx) = &rec_tx {
+                if tx.try_send(float_buf.clone()).is_err() {
+                    rec_tx = None;
+                }
+            }
 
             progress_counter += n_out_frames as u32;
             if progress_counter >= progress_update_interval {
@@ -238,6 +260,7 @@ fn handle_command(
     quantize: &mut bool,
     pending_triggers: &mut Vec<(usize, crate::state::PadAction, usize)>,
     samples_to_next_beat: usize,
+    rec_tx: &mut Option<mpsc::SyncSender<Vec<f32>>>,
 ) {
     match cmd {
         AudioCommand::TriggerPad { id, action } => {
@@ -316,6 +339,7 @@ fn handle_command(
             }
         }
         AudioCommand::SetQuantize(q) => { *quantize = q; }
-        AudioCommand::StartRecording | AudioCommand::StopRecording => {}
+        AudioCommand::StartRecording { tx } => { *rec_tx = Some(tx); }
+        AudioCommand::StopRecording => { *rec_tx = None; }
     }
 }

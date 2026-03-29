@@ -1,13 +1,57 @@
 import { invoke } from '@tauri-apps/api/core';
+import { useState, useEffect, useRef } from 'react';
 import { usePadStore } from '../store/usePadStore';
 import { useFxStore } from '../store/useFxStore';
+
+/** Format seconds into MM:SS */
+function fmtTime(secs: number): string {
+  const m = Math.floor(secs / 60).toString().padStart(2, '0');
+  const s = (secs % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
 
 export function Header() {
   const { kitName, setKitName, gridSize, setGridSize, editMode, setEditMode, resetAllPads } = usePadStore();
   const { bpm, setBpm, quantize, setQuantize } = useFxStore();
 
+  // ── Recording state ─────────────────────────────────────────────────────────
+  const [isRecording, setIsRecording] = useState(false);
+  const [recSeconds, setRecSeconds] = useState(0);
+  const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isRecording) {
+      setRecSeconds(0);
+      recTimerRef.current = setInterval(() => setRecSeconds((s) => s + 1), 1000);
+    } else {
+      if (recTimerRef.current) clearInterval(recTimerRef.current);
+    }
+    return () => { if (recTimerRef.current) clearInterval(recTimerRef.current); };
+  }, [isRecording]);
+
   const handleStopAll = async () => {
     await invoke('stop_all');
+  };
+
+  const handleRecord = async () => {
+    if (!isRecording) {
+      try {
+        const filePath = await invoke<string>('start_recording');
+        setIsRecording(true);
+        console.info('Recording started:', filePath);
+      } catch (err) {
+        console.error('Failed to start recording:', err);
+      }
+    } else {
+      try {
+        const filePath = await invoke<string>('stop_recording');
+        setIsRecording(false);
+        alert(`Enregistrement sauvegard\u00e9 :\n${filePath}`);
+      } catch (err) {
+        setIsRecording(false);
+        console.error('Failed to stop recording:', err);
+      }
+    }
   };
 
   const handleNewKit = async () => {
@@ -116,6 +160,27 @@ export function Header() {
       >
         STOP
       </button>
+
+      {/* Recording */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={handleRecord}
+          title={isRecording ? 'Arr\u00eater l\'enregistrement' : 'D\u00e9marrer l\'enregistrement (WAV 32-bit float)'}
+          className={[
+            'px-3 py-1 text-xs font-bold rounded border',
+            isRecording
+              ? 'bg-red-600 text-white border-red-500 animate-pulse'
+              : 'bg-slate-700 text-red-400 border-red-700 hover:bg-red-900 hover:text-red-300',
+          ].join(' ')}
+        >
+          {isRecording ? '\u25a0 STOP REC' : '\u25cf REC'}
+        </button>
+        {isRecording && (
+          <span className="text-red-400 text-xs font-mono tabular-nums">
+            {fmtTime(recSeconds)}
+          </span>
+        )}
+      </div>
 
       <div className="ml-auto flex items-center gap-2">
         <span className="text-slate-400 text-xs font-mono">Sampleur V2</span>

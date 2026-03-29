@@ -5,6 +5,14 @@ import { PadState } from '../types';
 interface PadProps {
   pad: PadState;
   size?: 'small' | 'large';
+  // ── Drag & drop props (provided by PadGrid) ────────────────────────────────
+  isDragSource?: boolean;
+  isDragTarget?: boolean;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  onDragOver?: () => void;
+  onDragLeave?: () => void;
+  onDrop?: () => void;
 }
 
 // Unicode glyphs for play modes — readable at any scale
@@ -14,7 +22,17 @@ const MODE_GLYPH: Record<string, string> = {
   oneshot: '▷',
 };
 
-export function Pad({ pad, size = 'large' }: PadProps) {
+export function Pad({
+  pad,
+  size = 'large',
+  isDragSource = false,
+  isDragTarget = false,
+  onDragStart,
+  onDragEnd,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+}: PadProps) {
   const { editMode, selectedPadId, selectPad } = usePadStore();
 
   const handlePress = async () => {
@@ -45,9 +63,13 @@ export function Pad({ pad, size = 'large' }: PadProps) {
     pad.hasSample
       ? `${pad.color.tw} ${pad.color.twText}`
       : 'bg-slate-800 text-slate-600 border-slate-700',
-    isSelected ? 'border-white ring-2 ring-white' : 'border-transparent',
+    // Selection ring (only when not drag-target to avoid stacking rings)
+    isSelected && !isDragTarget ? 'border-white ring-2 ring-white' : 'border-transparent',
     pad.isPlaying ? 'brightness-110' : '',
     !pad.hasSample ? 'opacity-60' : '',
+    // Drag visual feedback
+    isDragSource ? 'opacity-40 scale-95' : '',
+    isDragTarget ? 'ring-2 ring-yellow-400 brightness-125 border-yellow-400' : '',
   ].join(' ');
 
   // Truncate the file name (no extension) to fit the pad
@@ -58,11 +80,29 @@ export function Pad({ pad, size = 'large' }: PadProps) {
   return (
     <div
       className={baseClasses}
+      // ── Playback / selection events ─────────────────────────────────────────
       onMouseDown={handlePress}
       onMouseUp={handleRelease}
       onMouseLeave={handleRelease}
       onTouchStart={(e) => { e.preventDefault(); handlePress(); }}
       onTouchEnd={(e) => { e.preventDefault(); handleRelease(); }}
+      // ── HTML5 Drag & Drop (only active in edit mode) ────────────────────────
+      draggable={editMode}
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = 'move';
+        onDragStart?.();
+      }}
+      onDragEnd={() => onDragEnd?.()}
+      onDragOver={(e) => {
+        e.preventDefault(); // required to allow drop
+        e.dataTransfer.dropEffect = 'move';
+        onDragOver?.();
+      }}
+      onDragLeave={() => onDragLeave?.()}
+      onDrop={(e) => {
+        e.preventDefault();
+        onDrop?.();
+      }}
     >
       {/* ── Line 1 : custom label (bold) ───────────────────────────── */}
       <span className="z-10 leading-none font-bold drop-shadow px-1 truncate max-w-full">
@@ -100,6 +140,11 @@ export function Pad({ pad, size = 'large' }: PadProps) {
       {/* ── Playing overlay ───────────────────────────────────────────── */}
       {pad.isPlaying && (
         <div className="absolute inset-0 bg-white opacity-10 pointer-events-none" />
+      )}
+
+      {/* ── Drag target overlay ───────────────────────────────────────── */}
+      {isDragTarget && (
+        <div className="absolute inset-0 bg-yellow-400 opacity-15 pointer-events-none rounded" />
       )}
     </div>
   );
