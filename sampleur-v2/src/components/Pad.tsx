@@ -6,13 +6,12 @@ interface PadProps {
   pad: PadState;
   size?: 'small' | 'large';
   // ── Drag & drop props (provided by PadGrid) ────────────────────────────────
+  // Mouse-event based — more reliable than HTML5 DnD in Tauri/WebKit
   isDragSource?: boolean;
   isDragTarget?: boolean;
-  onDragStart?: () => void;
-  onDragEnd?: () => void;
-  onDragOver?: () => void;
-  onDragLeave?: () => void;
-  onDrop?: () => void;
+  onDragMouseDown?: () => void;   // Fired on mousedown when in edit mode
+  onDragMouseEnter?: () => void;  // Fired on mouseenter while a drag is in progress
+  onDragMouseLeave?: () => void;  // Fired on mouseleave while a drag is in progress
 }
 
 // Unicode glyphs for play modes — readable at any scale
@@ -27,11 +26,9 @@ export function Pad({
   size = 'large',
   isDragSource = false,
   isDragTarget = false,
-  onDragStart,
-  onDragEnd,
-  onDragOver,
-  onDragLeave,
-  onDrop,
+  onDragMouseDown,
+  onDragMouseEnter,
+  onDragMouseLeave,
 }: PadProps) {
   const { editMode, selectedPadId, selectPad } = usePadStore();
 
@@ -55,21 +52,29 @@ export function Pad({
   const isSmall    = size === 'small';
 
   const baseClasses = [
-    'relative overflow-hidden rounded cursor-pointer select-none',
-    'transition-all duration-75 active:scale-95',
+    // Layout & shape
+    'relative overflow-hidden rounded select-none',
+    'transition-colors duration-75',
     'flex flex-col items-center justify-center gap-0',
     'border-2 font-bold',
-    isSmall ? 'h-10 text-xs' : 'h-16 sm:h-20 text-sm',
+    // Height: let the CSS grid rows determine the height (gridTemplateRows: repeat(N, 1fr))
+    // We only enforce a minimum so pads don't collapse on tiny screens.
+    isSmall ? 'min-h-8 text-xs' : 'min-h-12 text-sm',
+    // Colour
     pad.hasSample
       ? `${pad.color.tw} ${pad.color.twText}`
       : 'bg-slate-800 text-slate-600 border-slate-700',
-    // Selection ring (only when not drag-target to avoid stacking rings)
+    // Selection ring (suppressed when pad is a drag target to avoid ring collision)
     isSelected && !isDragTarget ? 'border-white ring-2 ring-white' : 'border-transparent',
+    // Playing brightness
     pad.isPlaying ? 'brightness-110' : '',
+    // Empty pad dimming
     !pad.hasSample ? 'opacity-60' : '',
     // Drag visual feedback
     isDragSource ? 'opacity-40 scale-95' : '',
     isDragTarget ? 'ring-2 ring-yellow-400 brightness-125 border-yellow-400' : '',
+    // Cursor
+    editMode ? 'cursor-grab' : 'cursor-pointer',
   ].join(' ');
 
   // Truncate the file name (no extension) to fit the pad
@@ -80,43 +85,33 @@ export function Pad({
   return (
     <div
       className={baseClasses}
-      // ── Playback / selection events ─────────────────────────────────────────
-      onMouseDown={handlePress}
+      // ── Playback / selection ───────────────────────────────────────────────
+      onMouseDown={() => {
+        onDragMouseDown?.();  // Signal drag start (PadGrid tracks this via ref)
+        handlePress();        // Select pad (edit mode) or play (play mode)
+      }}
       onMouseUp={handleRelease}
-      onMouseLeave={handleRelease}
+      onMouseEnter={() => onDragMouseEnter?.()}
+      onMouseLeave={() => {
+        onDragMouseLeave?.();
+        handleRelease();
+      }}
       onTouchStart={(e) => { e.preventDefault(); handlePress(); }}
-      onTouchEnd={(e) => { e.preventDefault(); handleRelease(); }}
-      // ── HTML5 Drag & Drop (only active in edit mode) ────────────────────────
-      draggable={editMode}
-      onDragStart={(e) => {
-        e.dataTransfer.effectAllowed = 'move';
-        onDragStart?.();
-      }}
-      onDragEnd={() => onDragEnd?.()}
-      onDragOver={(e) => {
-        e.preventDefault(); // required to allow drop
-        e.dataTransfer.dropEffect = 'move';
-        onDragOver?.();
-      }}
-      onDragLeave={() => onDragLeave?.()}
-      onDrop={(e) => {
-        e.preventDefault();
-        onDrop?.();
-      }}
+      onTouchEnd={(e)   => { e.preventDefault(); handleRelease(); }}
     >
-      {/* ── Line 1 : custom label (bold) ───────────────────────────── */}
+      {/* ── Line 1 : custom label (bold) ────────────────────────────────── */}
       <span className="z-10 leading-none font-bold drop-shadow px-1 truncate max-w-full">
         {pad.label}
       </span>
 
-      {/* ── Line 2 : file name (regular weight, lighter) ───────────── */}
+      {/* ── Line 2 : file name (regular weight, lighter) ────────────────── */}
       {shortName && !isSmall && (
         <span className="z-10 text-[9px] font-normal opacity-70 truncate max-w-full px-1 leading-tight">
           {shortName}
         </span>
       )}
 
-      {/* ── Mode icon (larger & bolder than before) ─────────────────── */}
+      {/* ── Mode icon ────────────────────────────────────────────────────── */}
       {pad.hasSample && (
         <span
           className={[
@@ -129,7 +124,7 @@ export function Pad({
         </span>
       )}
 
-      {/* ── Progress bar ─────────────────────────────────────────────── */}
+      {/* ── Progress bar ─────────────────────────────────────────────────── */}
       {pad.isPlaying && (
         <div
           className="absolute bottom-0 left-0 h-1 bg-white opacity-70 transition-none"
@@ -137,14 +132,14 @@ export function Pad({
         />
       )}
 
-      {/* ── Playing overlay ───────────────────────────────────────────── */}
+      {/* ── Playing overlay ──────────────────────────────────────────────── */}
       {pad.isPlaying && (
         <div className="absolute inset-0 bg-white opacity-10 pointer-events-none" />
       )}
 
-      {/* ── Drag target overlay ───────────────────────────────────────── */}
+      {/* ── Drag target highlight ────────────────────────────────────────── */}
       {isDragTarget && (
-        <div className="absolute inset-0 bg-yellow-400 opacity-15 pointer-events-none rounded" />
+        <div className="absolute inset-0 bg-yellow-400 opacity-20 pointer-events-none rounded" />
       )}
     </div>
   );

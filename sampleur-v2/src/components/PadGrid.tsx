@@ -1,23 +1,34 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { usePadStore } from '../store/usePadStore';
 import { Pad } from './Pad';
 
 export function PadGrid() {
-  const { pads, gridSize, swapPads } = usePadStore();
+  const { pads, gridSize, editMode } = usePadStore();
 
-  // ── Drag & drop state ───────────────────────────────────────────────────────
-  const [dragPadId, setDragPadId] = useState<number | null>(null);
-  const [overPadId, setOverPadId] = useState<number | null>(null);
+  // ── Mouse-event drag & drop ─────────────────────────────────────────────────
+  // We use refs for the "truth" (no stale-closure risk in global mouseup handler)
+  // and separate state only for re-rendering the visual feedback.
+  const dragFromRef = useRef<number | null>(null);
+  const overPadRef  = useRef<number | null>(null);
+  const [visualDragFrom, setVisualDragFrom] = useState<number | null>(null);
+  const [visualOverPad,  setVisualOverPad]  = useState<number | null>(null);
 
-  const handleSwap = async (dragId: number, dropId: number) => {
-    if (dragId === dropId) return;
+  const clearDragState = () => {
+    dragFromRef.current = null;
+    overPadRef.current  = null;
+    setVisualDragFrom(null);
+    setVisualOverPad(null);
+  };
 
-    // 1. Optimistic update in the store (instant visual feedback)
-    swapPads(dragId, dropId);
+  /** Swap two pads and sync the Rust backend. Uses getState() so it stays stable. */
+  const executeSwap = async (fromId: number, toId: number) => {
+    if (fromId === toId) return;
 
-    // 2. Sync both pads to the Rust backend
-    //    Read the store AFTER the swap so we get the new content for each position.
+    // Optimistic store update
+    usePadStore.getState().swapPads(fromId, toId);
+
+    // Sync each pad (post-swap content) to Rust
     const syncPad = async (padId: number) => {
       const pad = usePadStore.getState().pads.find((p) => p.id === padId);
       if (!pad) return;
@@ -36,14 +47,51 @@ export function PadGrid() {
       }
     };
 
-    await syncPad(dragId);
-    await syncPad(dropId);
-
-    // 3. Refresh Launchpad LEDs to reflect new colours
+    await syncPad(fromId);
+    await syncPad(toId);
     await invoke('refresh_leds').catch(console.warn);
   };
 
-  // Padawan mode: 4x4 using pads 0-3, 8-11, 16-19, 24-27 (first 4 of each row of 8)
+  // Global mouseup — finalise or cancel the drag.
+  // Using refs guarantees we always read the latest values without stale closures.
+  useEffect(() => {
+    const onMouseUp = () => {
+      const from = dragFromRef.current;
+      const to   = overPadRef.current;
+      clearDragState();
+      if (from !== null && to !== null && from !== to) {
+        void executeSwap(from, to);
+      }
+    };
+    window.addEventListener('mouseup', onMouseUp);
+    return () => window.removeEventListener('mouseup', onMouseUp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // stable: refs + getState() don't need to be in deps
+
+  // ── Drag callbacks passed to each Pad ──────────────────────────────────────
+
+  const handlePadMouseDown = (padId: number) => {
+    if (!editMode) return;
+    dragFromRef.current = padId;
+    setVisualDragFrom(padId);
+  };
+
+  const handlePadMouseEnter = (padId: number) => {
+    if (dragFromRef.current === null) return;
+    overPadRef.current = padId;
+    setVisualOverPad(padId);
+  };
+
+  const handlePadMouseLeave = (padId: number) => {
+    if (overPadRef.current === padId) {
+      overPadRef.current = null;
+      setVisualOverPad(null);
+    }
+  };
+
+  // ── Grid layout ────────────────────────────────────────────────────────────
+
+  // Padawan mode: 4×4 using the first 4 columns of rows 0-3
   const visiblePads = gridSize === 64
     ? pads
     : pads.filter((_, i) => {
@@ -53,14 +101,18 @@ export function PadGrid() {
       });
 
   const cols = gridSize === 64 ? 8 : 4;
+  const rows = gridSize === 64 ? 8 : 4;
+  const isDragging = visualDragFrom !== null;
 
   return (
     <div
-      className="p-3 flex-1"
+      className="p-2 flex-1 min-h-0"
       style={{
         display: 'grid',
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateRows:    `repeat(${rows}, 1fr)`,
         gap: '6px',
+        cursor: isDragging ? 'grabbing' : undefined,
       }}
     >
       {visiblePads.map((pad) => (
@@ -68,17 +120,15 @@ export function PadGrid() {
           key={pad.id}
           pad={pad}
           size={gridSize === 64 ? 'small' : 'large'}
-          isDragSource={dragPadId === pad.id}
-          isDragTarget={overPadId === pad.id && dragPadId !== null && dragPadId !== pad.id}
-          onDragStart={() => setDragPadId(pad.id)}
-          onDragEnd={() => { setDragPadId(null); setOverPadId(null); }}
-          onDragOver={() => setOverPadId(pad.id)}
-          onDragLeave={() => setOverPadId((prev) => (prev === pad.id ? null : prev))}
-          onDrop={() => {
-            if (dragPadId !== null) handleSwap(dragPadId, pad.id);
-            setDragPadId(null);
-            setOverPadId(null);
-          }}
+          isDragSource={visualDragFrom === pad.id}
+          isDragTarget={
+            isDragging &&
+            visualOverPad === pad.id &&
+            visualDragFrom !== pad.id
+          }
+          onDragMouseDown={() => handlePadMouseDown(pad.id)}
+          onDragMouseEnter={() => handlePadMouseEnter(pad.id)}
+          onDragMouseLeave={() => handlePadMouseLeave(pad.id)}
         />
       ))}
     </div>
