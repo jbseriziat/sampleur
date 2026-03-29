@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 pub enum AudioCommand {
     TriggerPad { id: usize, action: PadAction },
     StopAll,
+    /// Clear all pad samples and stop playback — used by "Nouveau Kit"
+    ResetKit,
     LoadSample { id: usize, samples: Arc<Vec<f32>>, sample_rate: u32, channels: u16 },
     RemoveSample { id: usize },
     SetPadVolume { id: usize, volume: f32 },
@@ -14,7 +16,9 @@ pub enum AudioCommand {
     SetFxParam(FxParam),
     SetBpm(f32),
     SetQuantize(bool),
-    StartRecording,
+    /// Start capturing the mixed+FX output into the provided channel.
+    StartRecording { tx: mpsc::SyncSender<Vec<f32>> },
+    /// Drop the recording sender — the writer thread will finalize the WAV on disconnect.
     StopRecording,
 }
 
@@ -58,6 +62,24 @@ pub struct PadProgress {
 // Shared state accessed by Tauri command handlers
 pub struct AudioShared {
     pub cmd_tx: mpsc::SyncSender<AudioCommand>,
+    /// Native sample rate of the CPAL output device (needed for WAV header).
+    pub sample_rate: u32,
+}
+
+/// State for the live recording feature.
+pub struct RecordingState {
+    /// When the recording started (for display only — timer is on the frontend).
+    pub start_time: Option<std::time::Instant>,
+    /// Absolute path of the WAV file being written.
+    pub file_path: Option<String>,
+    /// Handle to the writer thread — joined on stop to ensure the WAV is finalized.
+    pub writer_handle: Option<std::thread::JoinHandle<()>>,
+}
+
+impl Default for RecordingState {
+    fn default() -> Self {
+        Self { start_time: None, file_path: None, writer_handle: None }
+    }
 }
 
 pub struct MidiShared {
@@ -97,4 +119,5 @@ pub struct AppState {
     pub midi: Arc<Mutex<MidiShared>>,
     pub progress: Arc<Mutex<Vec<PadProgress>>>,
     pub bpm: Arc<Mutex<f32>>,
+    pub recording: Mutex<RecordingState>,
 }

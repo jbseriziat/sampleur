@@ -31,6 +31,12 @@ interface PadStore {
   setEditMode: (edit: boolean) => void;
   resetAllPads: () => void;
   loadFromPreset: (pads: (any | null)[], kitName: string, gridSize: 16 | 64) => void;
+  /**
+   * Swap the *content* of two pads (label, color, sample, mode, volume…).
+   * The pad `id` and `midiNote` are intentionally NOT swapped so that the
+   * Launchpad hardware mapping stays consistent with the physical grid position.
+   */
+  swapPads: (idA: number, idB: number) => void;
 }
 
 export const usePadStore = create<PadStore>((set) => ({
@@ -58,7 +64,39 @@ export const usePadStore = create<PadStore>((set) => ({
   setKitName: (name) => set({ kitName: name }),
   setGridSize: (size) => set({ gridSize: size }),
   setEditMode: (edit) => set({ editMode: edit }),
-  resetAllPads: () => set({ pads: Array.from({ length: 64 }, (_, i) => createDefaultPad(i)) }),
+  resetAllPads: () => set({
+    pads: Array.from({ length: 64 }, (_, i) => createDefaultPad(i)),
+    selectedPadId: null,
+    // Note: kitName is set explicitly by the caller after this
+  }),
+
+  swapPads: (idA, idB) => set((state) => {
+    // Fields that belong to the "content" of a pad and should travel with the drag.
+    // `id` and `midiNote` are intentionally excluded — they stay with the grid position.
+    const CONTENT_KEYS: (keyof PadState)[] = [
+      'label', 'color', 'mode', 'volume', 'detuneCents', 'originalBpm',
+      'hasSample', 'fileName', 'durationSecs', 'filePath',
+      'isPlaying', 'progress',
+    ];
+    const a = state.pads.find((p) => p.id === idA);
+    const b = state.pads.find((p) => p.id === idB);
+    if (!a || !b) return {};
+    return {
+      pads: state.pads.map((p) => {
+        if (p.id === idA) {
+          const swapped = { ...p };
+          for (const k of CONTENT_KEYS) (swapped as any)[k] = (b as any)[k];
+          return swapped;
+        }
+        if (p.id === idB) {
+          const swapped = { ...p };
+          for (const k of CONTENT_KEYS) (swapped as any)[k] = (a as any)[k];
+          return swapped;
+        }
+        return p;
+      }),
+    };
+  }),
 
   loadFromPreset: (presetPads, kitName, gridSize) => set((state) => {
     const newPads = state.pads.map((defaultPad) => {
