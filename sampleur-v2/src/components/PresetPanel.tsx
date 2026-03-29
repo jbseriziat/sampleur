@@ -11,6 +11,7 @@ export function PresetPanel() {
     midiInputs, midiOutputs,
     selectedInput, selectedOutput,
     setSelectedInput, setSelectedOutput,
+    setInputs, setOutputs,
   } = useMidiStore();
   const [saveMode, setSaveMode] = useState<'lightweight' | 'portable'>('lightweight');
 
@@ -73,10 +74,24 @@ export function PresetPanel() {
         quantize?: boolean;
       };
 
+      // 1. Update frontend store
       loadFromPreset(preset.pads, preset.name ?? 'Kit Charg\u00e9', preset.gridSize ?? 16);
       if (preset.fx) loadFx(preset.fx, preset.bpm ?? 120, preset.quantize ?? false);
 
-      // Auto-load samples that have absolutePathHint
+      // 2. Sync FX params to Rust engine
+      if (preset.fx) {
+        for (const [key, value] of Object.entries(preset.fx)) {
+          await invoke('set_fx_param', { param: key, value: value as number }).catch(() => {});
+        }
+      }
+      if (preset.bpm !== undefined) {
+        await invoke('set_bpm', { bpm: preset.bpm }).catch(console.warn);
+      }
+      if (preset.quantize !== undefined) {
+        await invoke('set_quantize', { enabled: preset.quantize }).catch(console.warn);
+      }
+
+      // 3. Auto-load samples and sync pad config to Rust
       for (const padData of preset.pads) {
         if (!padData?.sample?.absolutePathHint) continue;
         try {
@@ -89,14 +104,45 @@ export function PresetPanel() {
             durationSecs: result.duration_secs,
             filePath: padData.sample.absolutePathHint,
           });
+
+          // Sync mode, volume, detune, originalBpm and Launchpad color to Rust backend
+          const configArgs: Record<string, unknown> = {
+            padId:       padData.id,
+            volume:      padData.volume      ?? 1.0,
+            detuneCents: padData.detuneCents ?? 0,
+            mode:        padData.mode        ?? 'oneshot',
+            originalBpm: padData.originalBpm ?? 120,
+            colorMidi:   padData.color?.midiVelocity ?? 5,
+          };
+          // Restore explicit MIDI note if set (avoids wiping the Launchpad default mapping)
+          if (typeof padData.midiNote === 'number') {
+            configArgs.midiNote = padData.midiNote;
+          }
+          await invoke('set_pad_config', configArgs).catch(console.warn);
         } catch (err) {
           console.warn(`Cannot auto-load sample for pad ${padData.id}:`, err);
         }
       }
+
+      // 4. Refresh Launchpad LEDs with the restored colors
+      await invoke('refresh_leds').catch(console.warn);
     } catch (err) {
       if (String(err) !== 'Load cancelled') {
         console.error('Load error:', err);
       }
+    }
+  };
+
+  const handleRefreshMidi = async () => {
+    try {
+      const [inputs, outputs] = await Promise.all([
+        invoke<string[]>('get_midi_inputs'),
+        invoke<string[]>('get_midi_outputs'),
+      ]);
+      setInputs(inputs);
+      setOutputs(outputs);
+    } catch (err) {
+      console.error('MIDI refresh error:', err);
     }
   };
 
@@ -151,9 +197,18 @@ export function PresetPanel() {
         </button>
       </div>
 
-      {/* MIDI input */}
+      {/* MIDI section */}
       <div className="flex items-center gap-1 ml-4">
-        <span className="text-gray-400 text-xs">Entrée MIDI:</span>
+        <span className="text-gray-400 text-xs">MIDI:</span>
+        <button
+          onClick={handleRefreshMidi}
+          title="Rafra\u00eechir la liste des p\u00e9riph\u00e9riques MIDI"
+          className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-gray-300 rounded"
+        >
+          ↺
+        </button>
+
+        <span className="text-gray-400 text-xs ml-1">Entr\u00e9e:</span>
         <select
           value={selectedInput ?? ''}
           onChange={(e) => handleMidiInput(e.target.value)}
@@ -164,11 +219,8 @@ export function PresetPanel() {
             <option key={i} value={i}>{i.slice(0, 25)}</option>
           ))}
         </select>
-      </div>
 
-      {/* MIDI output */}
-      <div className="flex items-center gap-1">
-        <span className="text-gray-400 text-xs">Sortie MIDI:</span>
+        <span className="text-gray-400 text-xs ml-1">Sortie:</span>
         <select
           value={selectedOutput ?? ''}
           onChange={(e) => handleMidiOutput(e.target.value)}
@@ -181,7 +233,7 @@ export function PresetPanel() {
         </select>
         <button
           onClick={handleResetLeds}
-          title="Réinitialiser les LEDs"
+          title="R\u00e9initialiser les LEDs"
           className="px-2 py-1 text-xs bg-slate-700 hover:bg-slate-600 text-gray-300 rounded"
         >
           LEDs off
