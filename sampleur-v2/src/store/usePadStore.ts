@@ -64,16 +64,25 @@ export const usePadStore = create<PadStore>((set) => ({
     const newPads = state.pads.map((defaultPad) => {
       const p = presetPads[defaultPad.id];
       if (!p) return { ...createDefaultPad(defaultPad.id), hasSample: false };
+
+      // Re-hydrate the full ColorDef (Rust strips tw/twText during load/save).
+      // Match by name first, then by midiVelocity, then fall back to default.
+      const rawColor = p.color as Partial<typeof COLORS[0]> | undefined;
+      const color =
+        COLORS.find((c) => c.name.toLowerCase() === rawColor?.name?.toLowerCase()) ??
+        COLORS.find((c) => c.midiVelocity === rawColor?.midiVelocity) ??
+        defaultPad.color;
+
       return {
         ...defaultPad,
         label: p.label || String(defaultPad.id + 1),
-        color: p.color || defaultPad.color,
+        color,
         mode: (p.mode || 'oneshot') as PadMode,
         midiNote: p.midiNote,
         volume: p.volume ?? 1.0,
         detuneCents: p.detuneCents ?? 0,
         originalBpm: p.originalBpm ?? 120,
-        hasSample: false, // reset, user must reload samples
+        hasSample: false, // reset, samples are reloaded via absolutePathHint
         isPlaying: false,
         progress: 0,
         filePath: p.sample?.absolutePathHint,

@@ -1,0 +1,847 @@
+{
+  "version": 2,
+  "name": "Mortel Adele Acid Techno V2",
+  "createdAt": "2026-03-29T00:00:00.000Z",
+  "kitMode": "lightweight",
+  "bpm": 155.0,
+  "quantize": false,
+  "gridSize": 64,
+  "fx": {
+    "distortion": 0.0,
+    "filterFreq": 20000.0,
+    "filterResonance": 0.707,
+    "delayTime": 0.3,
+    "delayFeedback": 0.4,
+    "delayMix": 0.0,
+    "reverbMix": 0.0,
+    "gateRate": 0.0,
+    "flangerDepth": 0.005,
+    "flangerRate": 0.5,
+    "masterVolume": 1.0
+  },
+  "pads": [
+    {
+      "id": 0,
+      "label": "1",
+      "color": {
+        "name": "Rouge",
+        "hex": "#ef4444",
+        "midiVelocity": 5,
+        "tw": "bg-red-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 81,
+      "volume": 0.8,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_00_1.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_00_1.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_00_1.wav",
+        "durationSecs": 6.1936,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 1,
+      "label": "2",
+      "color": {
+        "name": "Orange",
+        "hex": "#f97316",
+        "midiVelocity": 9,
+        "tw": "bg-orange-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 82,
+      "volume": 1.05,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_01_2.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_01_2.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_01_2.wav",
+        "durationSecs": 3.0968,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 2,
+      "label": "3",
+      "color": {
+        "name": "Rouge",
+        "hex": "#ef4444",
+        "midiVelocity": 5,
+        "tw": "bg-red-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 83,
+      "volume": 0.8,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_02_3.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_02_3.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_02_3.wav",
+        "durationSecs": 6.1936,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 3,
+      "label": "4",
+      "color": {
+        "name": "Vert",
+        "hex": "#22c55e",
+        "midiVelocity": 21,
+        "tw": "bg-green-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 84,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_03_4.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_03_4.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_03_4.wav",
+        "durationSecs": 3.0968,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 4,
+      "label": "5",
+      "color": {
+        "name": "Rouge",
+        "hex": "#ef4444",
+        "midiVelocity": 5,
+        "tw": "bg-red-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 85,
+      "volume": 0.65,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_04_5.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_04_5.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_04_5.wav",
+        "durationSecs": 6.1936,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 5,
+      "label": "6",
+      "color": {
+        "name": "Jaune",
+        "hex": "#eab308",
+        "midiVelocity": 13,
+        "tw": "bg-yellow-500",
+        "twText": "text-black"
+      },
+      "mode": "loop",
+      "midiNote": 86,
+      "volume": 0.65,
+      "detuneCents": 0.0,
+      "originalBpm": 144.0,
+      "sample": {
+        "fileName": "pad_05_6.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_05_6.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_05_6.wav",
+        "durationSecs": 6.1936,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 6,
+      "label": "7",
+      "color": {
+        "name": "Rouge",
+        "hex": "#ef4444",
+        "midiVelocity": 5,
+        "tw": "bg-red-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 87,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_06_7.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_06_7.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_06_7.wav",
+        "durationSecs": 6.1936,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 7,
+      "label": "8",
+      "color": {
+        "name": "Jaune",
+        "hex": "#eab308",
+        "midiVelocity": 13,
+        "tw": "bg-yellow-500",
+        "twText": "text-black"
+      },
+      "mode": "loop",
+      "midiNote": 88,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_07_8.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_07_8.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_07_8.wav",
+        "durationSecs": 6.1936,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 8,
+      "label": "9",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 71,
+      "volume": 1.25,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_08_9.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_08_9.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_08_9.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 9,
+      "label": "10",
+      "color": {
+        "name": "Violet",
+        "hex": "#a855f7",
+        "midiVelocity": 49,
+        "tw": "bg-purple-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 72,
+      "volume": 0.6,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_09_10.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_09_10.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_09_10.wav",
+        "durationSecs": 6.1935,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 10,
+      "label": "11",
+      "color": {
+        "name": "Rose",
+        "hex": "#ec4899",
+        "midiVelocity": 53,
+        "tw": "bg-pink-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 73,
+      "volume": 0.7,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_10_11.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_10_11.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_10_11.wav",
+        "durationSecs": 6.1935,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 11,
+      "label": "12",
+      "color": {
+        "name": "Jaune",
+        "hex": "#eab308",
+        "midiVelocity": 13,
+        "tw": "bg-yellow-500",
+        "twText": "text-black"
+      },
+      "mode": "oneshot",
+      "midiNote": 74,
+      "volume": 1.1,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_11_12.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_11_12.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_11_12.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 12,
+      "label": "13",
+      "color": {
+        "name": "Violet",
+        "hex": "#a855f7",
+        "midiVelocity": 49,
+        "tw": "bg-purple-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 75,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_12_13.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_12_13.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_12_13.wav",
+        "durationSecs": 6.1936,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 13,
+      "label": "14",
+      "color": {
+        "name": "Rose",
+        "hex": "#ec4899",
+        "midiVelocity": 53,
+        "tw": "bg-pink-500",
+        "twText": "text-white"
+      },
+      "mode": "hold",
+      "midiNote": 76,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_13_14.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_13_14.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_13_14.wav",
+        "durationSecs": 3.0968,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 14,
+      "label": "15",
+      "color": {
+        "name": "Rose",
+        "hex": "#ec4899",
+        "midiVelocity": 53,
+        "tw": "bg-pink-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 77,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_14_15.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_14_15.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_14_15.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 15,
+      "label": "16",
+      "color": {
+        "name": "Rose",
+        "hex": "#ec4899",
+        "midiVelocity": 53,
+        "tw": "bg-pink-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 78,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_15_16.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_15_16.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_15_16.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 16,
+      "label": "17",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 61,
+      "volume": 2.0,
+      "detuneCents": 0.0,
+      "originalBpm": 140.0,
+      "sample": {
+        "fileName": "pad_16_17.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_16_17.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_16_17.wav",
+        "durationSecs": 2.5714,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 17,
+      "label": "18",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 62,
+      "volume": 2.0,
+      "detuneCents": 0.0,
+      "originalBpm": 140.0,
+      "sample": {
+        "fileName": "pad_17_18.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_17_18.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_17_18.wav",
+        "durationSecs": 1.7143,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 18,
+      "label": "19",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 63,
+      "volume": 2.0,
+      "detuneCents": 0.0,
+      "originalBpm": 140.0,
+      "sample": {
+        "fileName": "pad_18_19.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_18_19.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_18_19.wav",
+        "durationSecs": 5.5714,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 19,
+      "label": "20",
+      "color": {
+        "name": "Vert",
+        "hex": "#22c55e",
+        "midiVelocity": 21,
+        "tw": "bg-green-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 64,
+      "volume": 2.0,
+      "detuneCents": 0.0,
+      "originalBpm": 140.0,
+      "sample": {
+        "fileName": "pad_19_20.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_19_20.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_19_20.wav",
+        "durationSecs": 1.5484,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 20,
+      "label": "21",
+      "color": {
+        "name": "Rose",
+        "hex": "#ec4899",
+        "midiVelocity": 53,
+        "tw": "bg-pink-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 65,
+      "volume": 1.6,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_20_21.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_20_21.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_20_21.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 21,
+      "label": "22",
+      "color": {
+        "name": "Jaune",
+        "hex": "#eab308",
+        "midiVelocity": 13,
+        "tw": "bg-yellow-500",
+        "twText": "text-black"
+      },
+      "mode": "oneshot",
+      "midiNote": 66,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_21_22.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_21_22.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_21_22.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 22,
+      "label": "23",
+      "color": {
+        "name": "Jaune",
+        "hex": "#eab308",
+        "midiVelocity": 13,
+        "tw": "bg-yellow-500",
+        "twText": "text-black"
+      },
+      "mode": "oneshot",
+      "midiNote": 67,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_22_23.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_22_23.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_22_23.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 23,
+      "label": "24",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 68,
+      "volume": 2.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_23_24.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_23_24.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_23_24.wav",
+        "durationSecs": 6.1936,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 24,
+      "label": "25",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 51,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 150.0,
+      "sample": {
+        "fileName": "pad_24_25.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_24_25.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_24_25.wav",
+        "durationSecs": 2.055,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 25,
+      "label": "26",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "hold",
+      "midiNote": 52,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 150.0,
+      "sample": {
+        "fileName": "pad_25_26.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_25_26.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_25_26.wav",
+        "durationSecs": 2.077,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 26,
+      "label": "27",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 53,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_26_27.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_26_27.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_26_27.wav",
+        "durationSecs": 2.6297,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 27,
+      "label": "28",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "hold",
+      "midiNote": 54,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_27_28.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_27_28.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_27_28.wav",
+        "durationSecs": 3.4307,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 28,
+      "label": "29",
+      "color": {
+        "name": "Rose",
+        "hex": "#ec4899",
+        "midiVelocity": 53,
+        "tw": "bg-pink-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 55,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_28_29.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_28_29.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_28_29.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 29,
+      "label": "30",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 56,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_29_30.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_29_30.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_29_30.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 30,
+      "label": "31",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 57,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_30_31.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_30_31.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_30_31.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    {
+      "id": 31,
+      "label": "32",
+      "color": {
+        "name": "Bleu",
+        "hex": "#3b82f6",
+        "midiVelocity": 45,
+        "tw": "bg-blue-500",
+        "twText": "text-white"
+      },
+      "mode": "oneshot",
+      "midiNote": 58,
+      "volume": 2.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_31_32.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_31_32.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_31_32.wav",
+        "durationSecs": 6.1936,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    null,
+    null,
+    null,
+    null,
+    {
+      "id": 36,
+      "label": "37",
+      "color": {
+        "name": "Violet",
+        "hex": "#a855f7",
+        "midiVelocity": 49,
+        "tw": "bg-purple-500",
+        "twText": "text-white"
+      },
+      "mode": "loop",
+      "midiNote": 45,
+      "volume": 1.0,
+      "detuneCents": 0.0,
+      "originalBpm": 155.0,
+      "sample": {
+        "fileName": "pad_36_37.wav",
+        "relativePath": "../Samples/mortel_adele_acid_techno_v2/pad_36_37.wav",
+        "absolutePathHint": "/home/jb/Dev/Sampleur-Project/Samples/mortel_adele_acid_techno_v2/pad_36_37.wav",
+        "durationSecs": 12.3871,
+        "channels": 2,
+        "sampleRate": 44100
+      }
+    },
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ]
+}
