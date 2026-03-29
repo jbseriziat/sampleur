@@ -9,7 +9,7 @@ use tauri::Emitter;
 use state::{AppState, AudioShared, MidiShared, PadProgress};
 use audio::engine::AudioEngine;
 use commands::{
-    audio_commands::{trigger_pad, stop_all, load_sample, remove_sample, set_pad_config, get_progress},
+    audio_commands::{trigger_pad, stop_all, reset_kit, load_sample, remove_sample, set_pad_config, get_progress},
     fx_commands::{set_fx_param, set_bpm, set_quantize},
     midi_commands::{
         get_midi_inputs, get_midi_outputs,
@@ -128,6 +128,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             trigger_pad,
             stop_all,
+            reset_kit,
             load_sample,
             remove_sample,
             set_pad_config,

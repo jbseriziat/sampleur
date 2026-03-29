@@ -26,6 +26,21 @@ pub async fn stop_all(state: State<'_, AppState>) -> Result<(), String> {
     audio.cmd_tx.try_send(AudioCommand::StopAll).map_err(|e| e.to_string())
 }
 
+/// Reset all pads: stops playback, unloads all samples, clears MIDI pad state.
+/// The frontend must also call resetAllPads() on its store.
+#[tauri::command]
+pub async fn reset_kit(state: State<'_, AppState>) -> Result<(), String> {
+    {
+        let audio = state.audio.lock().map_err(|e| e.to_string())?;
+        audio.cmd_tx.try_send(AudioCommand::ResetKit).map_err(|e| e.to_string())?;
+    }
+    {
+        let mut midi = state.midi.lock().map_err(|e| e.to_string())?;
+        midi.pad_has_sample = [false; 64];
+    }
+    Ok(())
+}
+
 #[derive(serde::Serialize)]
 pub struct SampleLoadedResult {
     pub pad_id: usize,

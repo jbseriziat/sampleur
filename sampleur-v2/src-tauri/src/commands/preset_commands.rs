@@ -15,10 +15,20 @@ pub async fn save_preset(
     let mut preset: PresetV2 = serde_json::from_str(&preset_json).map_err(|e| e.to_string())?;
     preset.kit_mode = if kit_mode == "portable" { KitMode::Portable } else { KitMode::Lightweight };
 
+    // Build a safe default file name from the kit name
+    let safe_name: String = preset.name
+        .chars()
+        .map(|c| if c.is_alphanumeric() || c == '-' { c } else { '_' })
+        .collect::<String>();
+    let safe_name = safe_name.trim_matches('_').to_string();
+    let default_filename = format!("{}.sampleur2",
+        if safe_name.is_empty() { "preset".to_string() } else { safe_name });
+
     let file_path = tokio::task::spawn_blocking(move || {
         app.dialog()
             .file()
             .add_filter("Sampleur Preset", &["sampleur2"])
+            .set_file_name(&default_filename)
             .blocking_save_file()
     }).await
         .map_err(|e| e.to_string())?

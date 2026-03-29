@@ -58,7 +58,11 @@ export const usePadStore = create<PadStore>((set) => ({
   setKitName: (name) => set({ kitName: name }),
   setGridSize: (size) => set({ gridSize: size }),
   setEditMode: (edit) => set({ editMode: edit }),
-  resetAllPads: () => set({ pads: Array.from({ length: 64 }, (_, i) => createDefaultPad(i)) }),
+  resetAllPads: () => set({
+    pads: Array.from({ length: 64 }, (_, i) => createDefaultPad(i)),
+    selectedPadId: null,
+    // Note: kitName is set explicitly by the caller after this
+  }),
 
   loadFromPreset: (presetPads, kitName, gridSize) => set((state) => {
     const newPads = state.pads.map((defaultPad) => {

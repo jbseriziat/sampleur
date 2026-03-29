@@ -3,11 +3,18 @@ import { usePadStore } from '../store/usePadStore';
 import { useFxStore } from '../store/useFxStore';
 
 export function Header() {
-  const { kitName, setKitName, gridSize, setGridSize, editMode, setEditMode } = usePadStore();
+  const { kitName, setKitName, gridSize, setGridSize, editMode, setEditMode, resetAllPads } = usePadStore();
   const { bpm, setBpm, quantize, setQuantize } = useFxStore();
 
   const handleStopAll = async () => {
     await invoke('stop_all');
+  };
+
+  const handleNewKit = async () => {
+    if (!window.confirm('Créer un nouveau kit ? Les pads non sauvegardés seront perdus.')) return;
+    await invoke('reset_kit');
+    resetAllPads();
+    setKitName('Nouveau Kit');
   };
 
   const handleBpmChange = async (v: number) => {
@@ -91,6 +98,15 @@ export function Header() {
         className={`px-3 py-1 text-xs font-bold rounded border ${quantize ? 'bg-yellow-600 text-white border-yellow-500' : 'bg-slate-700 text-gray-400 border-slate-600'}`}
       >
         AIMANT
+      </button>
+
+      {/* New kit */}
+      <button
+        onClick={handleNewKit}
+        title="Réinitialiser tous les pads et créer un nouveau kit"
+        className="px-3 py-1 text-xs font-bold bg-slate-600 hover:bg-slate-500 text-white rounded border border-slate-500"
+      >
+        + NOUVEAU KIT
       </button>
 
       {/* Stop all */}

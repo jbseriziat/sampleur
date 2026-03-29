@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 pub enum AudioCommand {
     TriggerPad { id: usize, action: PadAction },
     StopAll,
+    /// Clear all pad samples and stop playback — used by "Nouveau Kit"
+    ResetKit,
     LoadSample { id: usize, samples: Arc<Vec<f32>>, sample_rate: u32, channels: u16 },
     RemoveSample { id: usize },
     SetPadVolume { id: usize, volume: f32 },
